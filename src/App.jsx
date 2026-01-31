@@ -153,7 +153,7 @@ const quizQuestions = [
         id: 2,
         headline: "Mysterious Explosion near Pentagon Sparks Fear and Chaos",
         type: "HOAX",
-        explanation: "Although now clearly AI-generated, this image successfully tricked many in 2023 and briefly affected financial markets.",
+        explanation: "Although now to most people this clearly looks AI-generated, this image successfully tricked many in 2023 and briefly affected financial markets.",
         image: "images/q2.jpg"
     },
     {
@@ -174,35 +174,35 @@ const quizQuestions = [
         id: 5,
         headline: "Everyone Knew the Migrant Ship Was Doomed. No One Helped.",
         type: "REAL",
-        explanation: "Investigative report by The New York Times (2023) detailing a real-world humanitarian crisis.",
+        explanation: "Investigative report by The New York Times (2023) about a real-world humanitarian crisis.",
         image: "images/q5.jpg"
     },
     {
         id: 6,
         headline: "$100M Smash and Grab Recorded By CCTV",
         type: "HOAX",
-        explanation: "Generated using AI. Awkward postures and lighting inconsistencies indicate fabrication.",
+        explanation: "Generated using AI. The awkward postures and lighting inconsistencies indicate fabrication.",
         image: "images/q6.jpg"
     },
     {
         id: 7,
         headline: "Marshall Islands parliament burns down in overnight fire",
         type: "REAL",
-        explanation: "Verified news published by international outlets reporting on regional incidents in 2025.",
+        explanation: "Verified news published by international outlets reporting on a regional incident in 2025.",
         image: "images/q7.jpg"
     },
     {
         id: 8,
         headline: "Extinct species rediscovered at a small island near Australia",
         type: "HOAX",
-        explanation: "False claim amplified using AI-generated imagery of fictional animals.",
+        explanation: "The headline is taken from a legitimate news, but has been altered. The only way to really detect is by cross-checking.",
         image: "images/q8.jpg"
     },
     {
         id: 9,
         headline: "Florida man in Batman pajamas nabs suspected burglar.",
         type: "REAL",
-        explanation: "Verified news article published by CBS News regarding a real (though unusual) crime report.",
+        explanation: "Verified news article published by CBS News regarding a real (though absurd) crime report.",
         image: "images/q9.jpg"
     },
     {
