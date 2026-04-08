@@ -1,132 +1,89 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import {
-    motion,
-    AnimatePresence,
-} from 'framer-motion';
-import {
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell,
-    AreaChart,
-    Area
+    XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
 import {
-    ShieldAlert,
-    BrainCircuit,
-    CheckCircle2,
-    XCircle,
-    BarChart3,
-    ChevronRight,
-    AlertTriangle,
-    Share2,
-    Eye,
-    RefreshCcw,
-    ScanSearch,
-    ChevronDown,
-    ChevronUp,
-    Sparkles,
-    ArrowRight,
-    Fingerprint
+    ShieldAlert, BrainCircuit, CheckCircle2, XCircle,
+    BarChart3, AlertTriangle, Share2, RefreshCcw,
+    ChevronDown, ArrowRight, Fingerprint
 } from 'lucide-react';
 
-// --- UI Text Configuration ---
+// ─── Design Token ─────────────────────────────────────────────────────────────
+const AMBER = '#d4a843';
+
+// ─── UI Text ──────────────────────────────────────────────────────────────────
 const UI_TEXT = {
-    brand: {
-        name: "Truth",
-        suffix: "Initiative"
-    },
-    nav: {
-        research: "Research & Data",
-        quiz: "Interactive Quiz"
-    },
+    brand: { name: 'Truth', suffix: 'Initiative' },
+    nav: { research: 'Research & Data', quiz: 'Interactive Quiz' },
+    ticker: [
+        '2,330 hoaxes identified in Indonesia (2023)',
+        '97% of all hoaxes rely on images to deceive',
+        'AI can generate convincing images in under 1 minute',
+        'Political hoaxes rose 136% from 2022 to 2023',
+        'Always verify information with credible sources',
+    ],
     hero: {
-        badge: "Global Perspective Project 25/26",
-        titleMain: "Fighting Hoax in the",
-        titleGradient: "Age of AI",
-        description: "An in-depth analysis of the widespread of hoax, its dangers and the ways to prevent it. Especially in the modern era of AI technology.",
-        btnPrimary: "Explore Data",
-        btnSecondary: "Play Game"
+        badge: 'Global Perspective Project 25/26',
+        titleA: 'Fighting Hoax',
+        titleB: 'in the',
+        titleC: 'Age of AI',
+        description: 'An in-depth analysis of how hoaxes spread, their dangers, and the ways to fight them — especially in the modern era of AI.',
+        btnPrimary: 'Explore Data',
+        btnSecondary: 'Take the Quiz',
     },
+    heroStats: [
+        { value: 2330, suffix: '', label: 'Hoaxes Identified', note: 'Indonesia, 2023' },
+        { value: 97, suffix: '%', label: 'Image-Based Hoaxes', note: 'Of all hoax types' },
+        { value: 1, suffix: 'min', label: 'AI Image Gen Time', note: 'Realistic & convincing' },
+    ],
     abstract: [
-        {
-            icon: AlertTriangle,
-            title: "Scale of Information",
-            text: "Petabytes of information is being uploaded online every second. It is nearly impossible to verify that every piece of information is valid.",
-            source: "Spectralplex"
-        },
-        {
-            icon: BrainCircuit,
-            title: "Effects of AI",
-            text: "AI models can now generate realistic and convincing images in under a minute. This allows nearly anybody to create mass amounts of believable fake news.",
-            source: "CNET (2025)"
-        },
-        {
-            icon: Share2,
-            title: "Online Activity",
-            text: "In recent years, online activity has spiked. Including the consumption and sharing of information which has only helped the widespread of hoaxes.",
-            source: "Bond Internet Trends (2024)"
-        }
+        { icon: AlertTriangle, num: '01', title: 'Scale of Information', text: 'Petabytes of information are uploaded online every second. It is nearly impossible to verify every piece.', source: 'Spectralplex' },
+        { icon: BrainCircuit, num: '02', title: 'Effects of AI', text: 'AI models can generate realistic images in under a minute — enabling mass production of believable misinformation.', source: 'CNET (2025)' },
+        { icon: Share2, num: '03', title: 'Online Activity', text: 'Online activity has spiked in recent years, accelerating the consumption and spread of unverified information.', source: 'Bond Internet Trends (2024)' },
     ],
     stats: {
-        heading: "Quantitative Data",
-        subtitle: "Analyzing trends and findings based on Mafindo's annual hoax reports (2018-2023).",
+        label: 'Quantitative Data',
+        subtitle: "Analyzing trends based on Mafindo's annual hoax reports (2018–2023).",
         chart1: {
-            title: "Identified Hoaxes in Indonesia",
-            totalLabel: "Total Hoax Articles",
-            politicsLabel: "Politics-Related",
-            description: "Data shows how much number of hoaxes has increased over the years (including political hoaxes). This shows how hoaxes are a growing problem, especially due to how it can interfere with critical fields such as politics.",
-            source: "Chairman of Mafindo - Septiaji Eko Nugroho in Kompas.com (2024)"
+            title: 'Identified Hoaxes in Indonesia',
+            totalLabel: 'Total Hoax Articles',
+            politicsLabel: 'Politics-Related',
+            description: 'Hoax volume has increased significantly over the years. Political hoaxes surged especially fast — demonstrating how misinformation threatens democratic processes.',
+            source: 'Septiaji Eko Nugroho, Chairman of Mafindo, Kompas.com (2024)',
         },
         chart2: {
-            title: "Hoax Medium Distribution",
-            description: "The data shows how much hoaxes use images to convince the mass. From here we could see the problems visual media poses compared to video.",
-            source: "Dufour, Pathak, et al., 2024"
-        }
+            title: 'Hoax Medium Distribution',
+            description: 'Images overwhelmingly dominate as the medium for hoaxes. Visual deception is far more prevalent than video-based misinformation.',
+            source: 'Dufour, Pathak, et al., 2024',
+        },
     },
     protocol: {
-        heading: "How to Identify",
-        subtitle: "A simple approach to detect hoaxes for everyday users.",
+        label: 'How to Identify',
+        subtitle: 'A practical three-step approach to detecting hoaxes.',
         steps: [
-            { step: "1", title: "Common Characteristics", desc: "Hoaxes often use provocative language to invoke panic while also urging viewers to share to support its widespread." },
-            { step: "2", title: "Image Analysis", desc: "AI generated or edited images often look unnatural. Search for abnormalities in complex details such as lighting, physics, and reflection." },
-            { step: "3", title: "Cross-checking", desc: "Verify the information by rechecking and comparing with credible sources. If it is also reported by those sources, it most likely is true." }
-        ]
+            { num: '01', title: 'Common Characteristics', desc: 'Hoaxes often use provocative language to invoke panic, while urging viewers to share — accelerating their spread.' },
+            { num: '02', title: 'Image Analysis', desc: 'AI-generated images often look unnatural. Look for abnormalities in lighting, physics, reflections, and fine details.' },
+            { num: '03', title: 'Cross-checking', desc: 'Verify by comparing with credible sources. If multiple reputable outlets report it, it is most likely true.' },
+        ],
     },
     cta: {
-        heading: "Can you spot the hoax?",
-        subheading: "Test your ability to distinguish between what is real and what is fake.",
-        button: "Start Quiz"
+        label: 'Test Yourself',
+        heading: 'Can you spot the',
+        headingAccent: 'hoax?',
+        subheading: 'Test your ability to distinguish real news from fabricated content.',
+        button: 'Start Quiz',
     },
     quiz: {
-        start: {
-            title: "Real or Hoax?",
-            description: "Ten questions. Two options. Can you really distinguish between real and fake news?",
-            button: "Start Quiz"
-        },
-        playing: {
-            caseFile: "Question",
-            artifactLabel: "Visual Evidence",
-            btnReal: "Real",
-            btnHoax: "Hoax",
-            btnNext: "Next Question",
-            correctTitle: "Correct",
-            incorrectTitle: "Incorrect"
-        },
-        end: {
-            title: "Assessment Complete",
-            accuracyLabel: "Final Score",
-            retryBtn: "Play Again"
-        }
+        start: { label: 'Interactive Quiz', title: 'Real or Hoax?', description: 'Ten questions. Two options. Can you really distinguish between real and fake news?', button: 'Start the Test' },
+        playing: { label: 'Question', evidenceLabel: 'Visual Evidence', btnReal: 'Real', btnHoax: 'Hoax', btnNext: 'Next Question', correctTitle: 'Correct', incorrectTitle: 'Incorrect' },
+        end: { label: 'Assessment Complete', scoreLabel: 'Detection Score', retryBtn: 'Try Again' },
     },
-    footer: "Global Perspective Proof Of Action - Website by Mikael Krishna"
+    footer: 'Global Perspective Proof Of Action — Website by Mikael Krishna',
 };
 
-// --- Data & Constants ---
+// ─── Data ─────────────────────────────────────────────────────────────────────
 const researchData = [
     { year: '2018', total: 997, politics: 487 },
     { year: '2019', total: 1221, politics: 643 },
@@ -138,180 +95,180 @@ const researchData = [
 
 const sourceData = [
     { name: 'Image', value: 97 },
-    { name: 'Video', value: 3 }
+    { name: 'Video', value: 3 },
 ];
 
 const quizQuestions = [
-    {
-        id: 1,
-        headline: "North Korea's Kim Jong Un says country to increase number of nuclear weapons 'exponentially'.",
-        type: "REAL",
-        explanation: "News published by CNN in September 2024 about Kim Jong Un's controversial statement.",
-        image: "images/q1.jpg"
-    },
-    {
-        id: 2,
-        headline: "Mysterious Explosion near Pentagon Sparks Fear and Chaos",
-        type: "HOAX",
-        explanation: "Although now to most people this clearly looks AI-generated, this image successfully tricked many in 2023 and briefly affected financial markets.",
-        image: "images/q2.jpg"
-    },
-    {
-        id: 3,
-        headline: "Cargo plane slides off runway in Hong Kong, killing 2 airport staff",
-        type: "REAL",
-        explanation: "This is real news released by CBC about an airplane runway accident in October 2025.",
-        image: "images/q3.jpg"
-    },
-    {
-        id: 4,
-        headline: "Driving lesson ends gravely, killing 2 including driving instructor.",
-        type: "HOAX",
-        explanation: "This was generated completely free using Whisk in under 3 minutes. The lettering on POLRI is weird and the blur is unnatural.",
-        image: "images/q4.jpg"
-    },
-    {
-        id: 5,
-        headline: "Everyone Knew the Migrant Ship Was Doomed. No One Helped.",
-        type: "REAL",
-        explanation: "Investigative report by The New York Times (2023) about a real-world humanitarian crisis.",
-        image: "images/q5.jpg"
-    },
-    {
-        id: 6,
-        headline: "$100M Smash and Grab Recorded By CCTV",
-        type: "HOAX",
-        explanation: "Generated using AI. The awkward postures and lighting inconsistencies indicate fabrication.",
-        image: "images/q6.jpg"
-    },
-    {
-        id: 7,
-        headline: "Marshall Islands parliament burns down in overnight fire",
-        type: "REAL",
-        explanation: "Verified news published by international outlets reporting on a regional incident in 2025.",
-        image: "images/q7.jpg"
-    },
-    {
-        id: 8,
-        headline: "Extinct species rediscovered at a small island near Australia",
-        type: "HOAX",
-        explanation: "The headline is taken from a legitimate news, but has been altered. The only way to really detect is by cross-checking.",
-        image: "images/q8.jpg"
-    },
-    {
-        id: 9,
-        headline: "Florida man in Batman pajamas nabs suspected burglar.",
-        type: "REAL",
-        explanation: "Verified news article published by CBS News regarding a real (though absurd) crime report.",
-        image: "images/q9.jpg"
-    },
-    {
-        id: 10,
-        headline: "Iran launches barrage of missiles at Israel following attack",
-        type: "REAL",
-        explanation: "Documented military conflict reported by CNN and BBC in 2025.",
-        image: "images/q10.jpg"
-    }
+    { id: 1, headline: "North Korea's Kim Jong Un says country to increase number of nuclear weapons 'exponentially'.", type: 'REAL', explanation: "News published by CNN in September 2024 about Kim Jong Un's controversial statement.", image: 'images/q1.jpg' },
+    { id: 2, headline: 'Mysterious Explosion near Pentagon Sparks Fear and Chaos', type: 'HOAX', explanation: 'Although now to most people this clearly looks AI-generated, this image successfully tricked many in 2023 and briefly affected financial markets.', image: 'images/q2.jpg' },
+    { id: 3, headline: 'Cargo plane slides off runway in Hong Kong, killing 2 airport staff', type: 'REAL', explanation: 'This is real news released by CBC about an airplane runway accident in October 2025.', image: 'images/q3.jpg' },
+    { id: 4, headline: 'Driving lesson ends gravely, killing 2 including driving instructor.', type: 'HOAX', explanation: 'This was generated completely free using Whisk in under 3 minutes. The lettering on POLRI is weird and the blur is unnatural.', image: 'images/q4.jpg' },
+    { id: 5, headline: 'Everyone Knew the Migrant Ship Was Doomed. No One Helped.', type: 'REAL', explanation: 'Investigative report by The New York Times (2023) about a real-world humanitarian crisis.', image: 'images/q5.jpg' },
+    { id: 6, headline: '$100M Smash and Grab Recorded By CCTV', type: 'HOAX', explanation: 'Generated using AI. The awkward postures and lighting inconsistencies indicate fabrication.', image: 'images/q6.jpg' },
+    { id: 7, headline: 'Marshall Islands parliament burns down in overnight fire', type: 'REAL', explanation: 'Verified news published by international outlets reporting on a regional incident in 2025.', image: 'images/q7.jpg' },
+    { id: 8, headline: 'Extinct species rediscovered at a small island near Australia', type: 'HOAX', explanation: 'The headline is taken from a legitimate news, but has been altered. The only way to really detect is by cross-checking.', image: 'images/q8.jpg' },
+    { id: 9, headline: 'Florida man in Batman pajamas nabs suspected burglar.', type: 'REAL', explanation: 'Verified news article published by CBS News regarding a real (though absurd) crime report.', image: 'images/q9.jpg' },
+    { id: 10, headline: 'Iran launches barrage of missiles at Israel following attack', type: 'REAL', explanation: 'Documented military conflict reported by CNN and BBC in 2025.', image: 'images/q10.jpg' },
 ];
 
-// --- Visual Assets ---
+// ─── Hooks ────────────────────────────────────────────────────────────────────
+function useCountUp(end, duration = 2.5) {
+    const ref = useRef(null);
+    const isInView = useInView(ref, { once: true });
+    const [count, setCount] = useState(0);
 
+    useEffect(() => {
+        if (!isInView) return;
+        let frame;
+        let start = null;
+        const tick = (ts) => {
+            if (!start) start = ts;
+            const p = Math.min((ts - start) / (duration * 1000), 1);
+            setCount(Math.round((1 - Math.pow(1 - p, 3)) * end));
+            if (p < 1) frame = requestAnimationFrame(tick);
+        };
+        frame = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(frame);
+    }, [isInView, end, duration]);
+
+    return [ref, count];
+}
+
+// ─── Animation Variants ───────────────────────────────────────────────────────
+const fadeUp = {
+    hidden: { opacity: 0, y: 24 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] } },
+};
+
+// ─── Visual Primitives ────────────────────────────────────────────────────────
 const FilmGrain = () => (
-    <div className="fixed inset-0 pointer-events-none z-50 opacity-[0.03] mix-blend-overlay">
-        <svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'>
-            <filter id='noise'>
-                <feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch' />
+    <div className="fixed inset-0 pointer-events-none z-50 opacity-[0.02] mix-blend-overlay">
+        <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <filter id="fg">
+                <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="4" stitchTiles="stitch" />
             </filter>
-            <rect width='100%' height='100%' filter='url(#noise)' />
+            <rect width="100%" height="100%" filter="url(#fg)" />
         </svg>
     </div>
 );
 
-const GlowSpot = ({ className }) => (
-    <div className={`absolute rounded-full blur-[100px] opacity-20 pointer-events-none ${className}`} />
+const DotGrid = () => (
+    <div
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{
+            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.022) 1px, transparent 1px)',
+            backgroundSize: '28px 28px',
+        }}
+    />
 );
 
-// --- Components ---
-
-const SectionHeading = ({ children, subtitle }) => (
-    <div className="mb-20">
-        <motion.h2
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-medium text-white mb-6 tracking-tight"
-        >
-            {children}
-        </motion.h2>
-        <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-zinc-400 text-lg max-w-2xl leading-relaxed"
-        >
-            {subtitle}
-        </motion.p>
-    </div>
-);
-
-const DataCard = ({ title, icon: Icon, children, description, source }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-
+const TickerTape = () => {
+    const doubled = [...UI_TEXT.ticker, ...UI_TEXT.ticker];
     return (
-        <div className="bg-zinc-900/40 backdrop-blur-xl border border-white/5 rounded-[2rem] p-8 flex flex-col h-full hover:bg-zinc-900/60 transition-all duration-500 group">
-            <div className="flex justify-between items-start mb-8">
-                <h3 className="text-xl font-medium flex items-center gap-3 text-white">
-                    <span className="p-2.5 bg-white/5 rounded-2xl group-hover:bg-indigo-500/20 group-hover:text-indigo-300 transition-colors">
-                        <Icon size={20} className="text-zinc-300 group-hover:text-indigo-300" />
+        <div className="overflow-hidden py-2.5 border-b border-amber-400/10" style={{ backgroundColor: 'rgba(212,168,67,0.025)' }}>
+            <div className="flex whitespace-nowrap" style={{ animation: 'ticker 32s linear infinite' }}>
+                {doubled.map((item, i) => (
+                    <span
+                        key={i}
+                        className="flex-shrink-0 px-10 text-[10px] font-mono uppercase tracking-[0.2em]"
+                        style={{ color: 'rgba(212,168,67,0.5)' }}
+                    >
+                        ◆ {item}
                     </span>
-                    {title}
-                </h3>
-            </div>
-
-            <div className="flex-grow w-full relative z-10">
-                {children}
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-white/5">
-                <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="w-full flex justify-between items-center text-sm font-medium text-zinc-400 hover:text-white transition-colors group"
-                >
-                    <span className="flex items-center gap-2">
-                        {isExpanded ? "Hide Analysis" : "View Analysis"}
-                    </span>
-                    <div className={`p-1.5 rounded-full bg-white/5 group-hover:bg-white/10 transition-all ${isExpanded ? 'rotate-180' : ''}`}>
-                        <ChevronDown size={14} />
-                    </div>
-                </button>
-
-                <AnimatePresence>
-                    {isExpanded && (
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden"
-                        >
-                            <div className="pt-6 pb-2">
-                                <p className="text-sm text-zinc-300 leading-relaxed">
-                                    {description}
-                                </p>
-                                <div className="mt-6 flex items-center gap-3 text-xs text-zinc-500">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                                    <span className="uppercase tracking-widest">{source}</span>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                ))}
             </div>
         </div>
     );
 };
 
-// --- Main App ---
+// ─── Shared Components ────────────────────────────────────────────────────────
+const SectionLabel = ({ children }) => (
+    <div className="flex items-center gap-3 mb-5">
+        <span className="block w-5 h-px" style={{ backgroundColor: 'rgba(212,168,67,0.45)' }} />
+        <span className="text-[10px] font-mono uppercase tracking-[0.25em]" style={{ color: 'rgba(212,168,67,0.6)' }}>
+            {children}
+        </span>
+    </div>
+);
 
+function StatCounter({ value, suffix, label, note }) {
+    const [ref, count] = useCountUp(value);
+    return (
+        <div ref={ref}>
+            <div className="font-mono font-bold text-white tabular-nums leading-none" style={{ fontSize: 'clamp(1.8rem,4vw,2.6rem)' }}>
+                {count.toLocaleString()}
+                {suffix && <span style={{ color: AMBER }}>{suffix}</span>}
+            </div>
+            <div className="text-sm text-zinc-400 mt-2 font-medium">{label}</div>
+            <div className="text-[10px] font-mono text-zinc-600 uppercase tracking-wider mt-0.5">{note}</div>
+        </div>
+    );
+}
+
+function LegendItem({ color, label }) {
+    return (
+        <div className="flex items-center gap-2">
+            <div className="w-5 h-px rounded-full" style={{ backgroundColor: color }} />
+            <span className="text-[10px] font-mono text-zinc-500">{label}</span>
+        </div>
+    );
+}
+
+const DataCard = ({ title, icon: Icon, children, description, source }) => {
+    const [expanded, setExpanded] = useState(false);
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col rounded-2xl border overflow-hidden"
+            style={{ backgroundColor: '#111111', borderColor: 'rgba(255,255,255,0.06)' }}
+        >
+            <div className="flex items-center gap-3 px-7 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+                <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(212,168,67,0.1)' }}>
+                    <Icon size={15} style={{ color: AMBER }} />
+                </div>
+                <span className="text-sm font-medium text-white">{title}</span>
+            </div>
+            <div className="px-7 pt-6 pb-4 flex-grow">{children}</div>
+            <div className="px-7 pb-6 pt-4 border-t" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                <button
+                    onClick={() => setExpanded(v => !v)}
+                    className="flex items-center justify-between w-full text-[10px] font-mono uppercase tracking-[0.2em] transition-colors duration-200"
+                    style={{ color: expanded ? '#888' : '#555' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = '#aaa'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = expanded ? '#888' : '#555'; }}
+                >
+                    <span>{expanded ? 'Hide Analysis' : 'View Analysis'}</span>
+                    <ChevronDown
+                        size={12}
+                        style={{ transition: 'transform 0.3s', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                    />
+                </button>
+                <AnimatePresence>
+                    {expanded && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                            className="overflow-hidden"
+                        >
+                            <p className="text-sm text-zinc-400 leading-relaxed mt-5 mb-4">{description}</p>
+                            <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-600 uppercase tracking-wider">
+                                <span className="w-1 h-1 rounded-full" style={{ backgroundColor: 'rgba(212,168,67,0.5)' }} />
+                                {source}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+        </motion.div>
+    );
+};
+
+// ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
     const [activeTab, setActiveTab] = useState('research');
 
@@ -320,59 +277,59 @@ export default function App() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#09090b] text-zinc-100 font-sans selection:bg-indigo-500/20 selection:text-indigo-200 overflow-x-hidden">
+        <div className="min-h-screen text-zinc-100 font-sans overflow-x-hidden" style={{ backgroundColor: '#0b0b0b' }}>
             <FilmGrain />
-
-            <div className="max-w-[1400px] mx-auto px-6 lg:px-12 relative z-10">
+            <DotGrid />
+            <TickerTape />
+            <div className="relative z-10 max-w-[1320px] mx-auto px-5 sm:px-8 lg:px-14">
                 {/* Navbar */}
-                <nav className="flex items-center justify-between py-8">
-                    <div className="flex items-center gap-4 cursor-pointer" onClick={() => setActiveTab('research')}>
-                        <div className="w-10 h-10 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl backdrop-blur-md">
-                            <ShieldAlert size={18} className="text-white" />
+                <nav className="flex items-center justify-between py-6 border-b" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+                    <button className="flex items-center gap-3" onClick={() => setActiveTab('research')}>
+                        <div className="w-8 h-8 flex items-center justify-center rounded-lg border"
+                            style={{ backgroundColor: 'rgba(212,168,67,0.08)', borderColor: 'rgba(212,168,67,0.2)' }}>
+                            <ShieldAlert size={15} style={{ color: AMBER }} />
                         </div>
-                        <div className="flex flex-col">
-                            <span className="font-semibold text-lg tracking-tight text-white">{UI_TEXT.brand.name}</span>
-                            <span className="text-[10px] text-zinc-500 uppercase tracking-widest">{UI_TEXT.brand.suffix}</span>
+                        <div className="flex flex-col leading-none text-left">
+                            <span className="font-semibold text-sm text-white tracking-tight">{UI_TEXT.brand.name}</span>
+                            <span className="text-[8px] font-mono text-zinc-600 uppercase tracking-[0.2em] mt-0.5">{UI_TEXT.brand.suffix}</span>
                         </div>
-                    </div>
+                    </button>
 
-                    <div className="hidden md:flex bg-zinc-900/50 p-1.5 rounded-full border border-white/5 backdrop-blur-xl">
-                        <button
-                            onClick={() => setActiveTab('research')}
-                            className={`px-6 py-2.5 text-sm font-medium rounded-full transition-all duration-300 ${activeTab === 'research'
-                                ? 'bg-zinc-800 text-white shadow-sm border border-white/5'
-                                : 'text-zinc-500 hover:text-zinc-300'
-                                }`}
-                        >
-                            {UI_TEXT.nav.research}
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('quiz')}
-                            className={`px-6 py-2.5 text-sm font-medium rounded-full transition-all duration-300 ${activeTab === 'quiz'
-                                ? 'bg-zinc-800 text-white shadow-sm border border-white/5'
-                                : 'text-zinc-500 hover:text-zinc-300'
-                                }`}
-                        >
-                            {UI_TEXT.nav.quiz}
-                        </button>
+                    <div className="hidden md:flex items-center gap-0.5 p-1 rounded-full border"
+                        style={{ backgroundColor: '#111111', borderColor: 'rgba(255,255,255,0.06)' }}>
+                        {[{ id: 'research', label: UI_TEXT.nav.research }, { id: 'quiz', label: UI_TEXT.nav.quiz }].map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className="px-5 py-2 text-xs font-medium rounded-full transition-all duration-300"
+                                style={{
+                                    backgroundColor: activeTab === tab.id ? '#fff' : 'transparent',
+                                    color: activeTab === tab.id ? '#111' : '#555',
+                                }}
+                                onMouseEnter={e => { if (activeTab !== tab.id) e.currentTarget.style.color = '#ccc'; }}
+                                onMouseLeave={e => { if (activeTab !== tab.id) e.currentTarget.style.color = '#555'; }}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
                 </nav>
 
-                <main className="py-12 md:py-24">
+                <main className="py-14 md:py-20">
                     <AnimatePresence mode="wait">
-                        {activeTab === 'research' ? (
-                            <ResearchSection key="research" setTab={setActiveTab} />
-                        ) : (
-                            <QuizSection key="quiz" />
-                        )}
+                        {activeTab === 'research'
+                            ? <ResearchSection key="research" setTab={setActiveTab} />
+                            : <QuizSection key="quiz" />
+                        }
                     </AnimatePresence>
                 </main>
 
-                <footer className="border-t border-white/5 py-12 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-zinc-500">
+                <footer className="border-t py-9 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-mono uppercase tracking-wider"
+                    style={{ borderColor: 'rgba(255,255,255,0.05)', color: '#444' }}>
                     <p>{UI_TEXT.footer}</p>
-                    <div className="flex gap-2">
-                        <span className="w-2 h-2 rounded-full bg-zinc-800"></span>
-                        <span className="w-2 h-2 rounded-full bg-zinc-800"></span>
+                    <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: AMBER, opacity: 0.5 }} />
+                        <span>Active</span>
                     </div>
                 </footer>
             </div>
@@ -380,219 +337,263 @@ export default function App() {
     );
 }
 
-// --- Research Section ---
-
+// ─── Research Section ─────────────────────────────────────────────────────────
 function ResearchSection({ setTab }) {
-    const COLORS = ['#818cf8', '#34d399', '#fb7185', '#94a3b8'];
-
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        >
-            {/* Ambient Background Lights */}
-            <GlowSpot className="top-0 right-0 w-[500px] h-[500px] bg-indigo-500/20" />
-            <GlowSpot className="bottom-0 left-0 w-[600px] h-[600px] bg-emerald-500/10" />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
 
-            {/* Hero */}
-            <section className="mb-40 pt-10">
-                <div className="flex flex-col items-center text-center">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-zinc-300 mb-8 backdrop-blur-md"
-                    >
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+            {/* ── Hero ── */}
+            <section className="pt-6 pb-28 md:pb-36">
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
+                    className="inline-flex items-center gap-2.5 mb-10 px-3.5 py-1.5 rounded-full border"
+                    style={{ borderColor: 'rgba(212,168,67,0.25)', backgroundColor: 'rgba(212,168,67,0.05)' }}
+                >
+                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: AMBER }} />
+                    <span className="text-[10px] font-mono uppercase tracking-[0.2em]" style={{ color: 'rgba(212,168,67,0.8)' }}>
                         {UI_TEXT.hero.badge}
-                    </motion.div>
+                    </span>
+                </motion.div>
 
-                    <h1 className="text-6xl md:text-8xl lg:text-9xl font-semibold tracking-tighter text-white mb-8 leading-[0.95]">
-                        {UI_TEXT.hero.titleMain} <br />
-                        <span className="text-zinc-600">
-                            {UI_TEXT.hero.titleGradient}
+                <motion.h1
+                    initial="hidden" animate="visible"
+                    variants={{ visible: { transition: { staggerChildren: 0.14 } } }}
+                    className="font-bold tracking-tighter leading-[0.88] mb-10"
+                    style={{ fontSize: 'clamp(3.5rem,11vw,9rem)' }}
+                >
+                    <motion.span variants={fadeUp} className="block text-white">{UI_TEXT.hero.titleA}</motion.span>
+                    <motion.span variants={fadeUp} className="block">
+                        <span className="text-zinc-700">{UI_TEXT.hero.titleB} </span>
+                        <span style={{ color: AMBER, animation: 'glitch 8s ease-in-out 2s infinite' }}>
+                            {UI_TEXT.hero.titleC}
                         </span>
-                    </h1>
+                    </motion.span>
+                </motion.h1>
 
-                    <p className="text-xl md:text-2xl text-zinc-400 font-light leading-relaxed mb-12 max-w-2xl">
-                        {UI_TEXT.hero.description}
-                    </p>
+                <motion.p
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.7 }}
+                    className="text-base md:text-lg text-zinc-500 leading-relaxed max-w-lg mb-10 font-light"
+                >
+                    {UI_TEXT.hero.description}
+                </motion.p>
 
-                    <div className="flex flex-wrap gap-4 justify-center">
-                        <button
-                            onClick={() => document.getElementById('stats').scrollIntoView({ behavior: 'smooth' })}
-                            className="px-8 py-4 bg-white text-zinc-950 font-semibold rounded-full hover:bg-zinc-200 transition-colors flex items-center gap-2"
-                        >
-                            {UI_TEXT.hero.btnPrimary}
-                            <ArrowRight size={18} />
-                        </button>
-                        <button
-                            onClick={() => setTab('quiz')}
-                            className="px-8 py-4 bg-zinc-900 border border-zinc-800 text-white font-semibold rounded-full hover:bg-zinc-800 transition-all"
-                        >
-                            {UI_TEXT.hero.btnSecondary}
-                        </button>
-                    </div>
-                </div>
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65, duration: 0.5 }}
+                    className="flex flex-wrap gap-3"
+                >
+                    <button
+                        onClick={() => document.getElementById('data').scrollIntoView({ behavior: 'smooth' })}
+                        className="flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-full transition-all duration-300"
+                        style={{ backgroundColor: '#fff', color: '#111' }}
+                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = AMBER; }}
+                        onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#fff'; }}
+                    >
+                        {UI_TEXT.hero.btnPrimary} <ArrowRight size={14} />
+                    </button>
+                    <button
+                        onClick={() => setTab('quiz')}
+                        className="flex items-center gap-2 px-6 py-3 text-sm font-medium rounded-full transition-all duration-300 border"
+                        style={{ borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#666' }}
+                        onMouseEnter={e => { e.currentTarget.style.color = '#ccc'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = '#666'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                    >
+                        {UI_TEXT.hero.btnSecondary}
+                    </button>
+                </motion.div>
+
+                {/* Stats Row */}
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.85, duration: 0.6 }}
+                    className="mt-20 pt-10 grid grid-cols-3 gap-6 md:gap-12 max-w-xl border-t"
+                    style={{ borderColor: 'rgba(255,255,255,0.05)' }}
+                >
+                    {UI_TEXT.heroStats.map((s, i) => <StatCounter key={i} {...s} />)}
+                </motion.div>
             </section>
 
-            {/* Abstract Cards */}
-            <section className="grid md:grid-cols-3 gap-6 mb-40">
-                {UI_TEXT.abstract.map((item, i) => (
-                    <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="bg-zinc-900/30 border border-white/5 p-8 rounded-[2rem] hover:bg-zinc-900/50 transition-colors flex flex-col justify-between h-full"
-                    >
-                        <div>
-                            <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-zinc-300 mb-6">
-                                <item.icon size={22} />
-                            </div>
-                            <h3 className="text-xl font-medium text-white mb-4">{item.title}</h3>
-                            <p className="text-base text-zinc-400 leading-relaxed font-light">{item.text}</p>
-                        </div>
-                        <div className="mt-8 text-xs text-zinc-600 font-medium uppercase tracking-wider">
-                            Source: {item.source}
-                        </div>
-                    </motion.div>
-                ))}
-            </section>
-
-            {/* Stats */}
-            <div id="stats" className="scroll-mt-32 mb-40">
-                <SectionHeading subtitle={UI_TEXT.stats.subtitle}>
-                    {UI_TEXT.stats.heading}
-                </SectionHeading>
-
-                <div className="grid lg:grid-cols-2 gap-8">
-                    <DataCard
-                        title={UI_TEXT.stats.chart1.title}
-                        icon={BarChart3}
-                        description={UI_TEXT.stats.chart1.description}
-                        source={UI_TEXT.stats.chart1.source}
-                    >
-                        <div className="h-[350px] w-full mt-6">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={researchData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                                    <defs>
-                                        <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#818cf8" stopOpacity={0.2} />
-                                            <stop offset="95%" stopColor="#818cf8" stopOpacity={0} />
-                                        </linearGradient>
-                                        <linearGradient id="colorPolitics" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#fb7185" stopOpacity={0.2} />
-                                            <stop offset="95%" stopColor="#fb7185" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                                    <XAxis dataKey="year" stroke="#52525b" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} dy={10} />
-                                    <YAxis stroke="#52525b" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} dx={-10} />
-                                    <Tooltip
-                                        contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                                        itemStyle={{ color: '#e4e4e7', fontSize: '13px' }}
-                                        cursor={{ stroke: '#52525b', strokeWidth: 1 }}
-                                    />
-                                    <Area type="monotone" dataKey="total" stroke="#818cf8" strokeWidth={3} fillOpacity={1} fill="url(#colorTotal)" name={UI_TEXT.stats.chart1.totalLabel} />
-                                    <Area type="monotone" dataKey="politics" stroke="#fb7185" strokeWidth={3} fillOpacity={1} fill="url(#colorPolitics)" name={UI_TEXT.stats.chart1.politicsLabel} />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </DataCard>
-
-                    <DataCard
-                        title={UI_TEXT.stats.chart2.title}
-                        icon={Share2}
-                        description={UI_TEXT.stats.chart2.description}
-                        source={UI_TEXT.stats.chart2.source}
-                    >
-                        <div className="h-[350px] w-full flex items-center justify-center mt-6">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={sourceData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={80}
-                                        outerRadius={120}
-                                        paddingAngle={5}
-                                        dataKey="value"
-                                        stroke="none"
-                                        cornerRadius={10}
-                                    >
-                                        {sourceData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip
-                                        contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '12px' }}
-                                        itemStyle={{ color: '#e4e4e7', fontSize: '13px' }}
-                                    />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                        <div className="flex justify-center gap-8 text-sm text-zinc-400 mt-6">
-                            {sourceData.map((entry, index) => (
-                                <div key={index} className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index] }}></div>
-                                    <span className="font-medium text-white">{entry.name}: {entry.value}%</span>
-                                </div>
-                            ))}
-                        </div>
-                    </DataCard>
-                </div>
-            </div>
-
-            <section className="mb-40">
-                <SectionHeading subtitle={UI_TEXT.protocol.subtitle}>
-                    {UI_TEXT.protocol.heading}
-                </SectionHeading>
-                <div className="grid md:grid-cols-3 gap-6">
-                    {UI_TEXT.protocol.steps.map((item, i) => (
+            {/* ── Why It Matters ── */}
+            <section className="mb-28">
+                <SectionLabel>Why It Matters</SectionLabel>
+                <div className="grid md:grid-cols-3 gap-4">
+                    {UI_TEXT.abstract.map((item, i) => (
                         <motion.div
                             key={i}
-                            whileHover={{ y: -5 }}
-                            className="bg-zinc-900/30 border border-white/5 p-10 rounded-[2.5rem] hover:bg-zinc-900/50 transition-all"
+                            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }} transition={{ delay: i * 0.1, duration: 0.55 }}
+                            className="group p-7 rounded-2xl border flex flex-col transition-all duration-500"
+                            style={{ backgroundColor: '#111111', borderColor: 'rgba(255,255,255,0.06)' }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(212,168,67,0.2)'; e.currentTarget.style.backgroundColor = '#131311'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.backgroundColor = '#111111'; }}
                         >
-                            <span className="text-6xl font-semibold text-zinc-800 block mb-6">{item.step}</span>
-                            <h3 className="text-xl font-medium mb-4 text-white">{item.title}</h3>
-                            <p className="text-base text-zinc-400 leading-relaxed">{item.desc}</p>
+                            <div className="flex items-start justify-between mb-7">
+                                <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(212,168,67,0.08)' }}>
+                                    <item.icon size={16} style={{ color: AMBER }} />
+                                </div>
+                                <span className="font-mono text-[10px] text-zinc-700">{item.num}</span>
+                            </div>
+                            <h3 className="text-base font-semibold text-white tracking-tight mb-2.5">{item.title}</h3>
+                            <p className="text-sm text-zinc-500 leading-relaxed flex-grow">{item.text}</p>
+                            <div className="mt-7 pt-5 border-t" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                                <span className="text-[10px] font-mono text-zinc-700 uppercase tracking-[0.15em]">Source: {item.source}</span>
+                            </div>
                         </motion.div>
                     ))}
                 </div>
             </section>
 
-            <div className="relative rounded-[3rem] overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/50 to-purple-900/50"></div>
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay"></div>
+            {/* ── Quantitative Data ── */}
+            <section id="data" className="mb-28 scroll-mt-20">
+                <SectionLabel>{UI_TEXT.stats.label}</SectionLabel>
+                <p className="text-sm text-zinc-500 mb-10 max-w-md leading-relaxed">{UI_TEXT.stats.subtitle}</p>
+                <div className="grid lg:grid-cols-2 gap-5">
+                    <DataCard title={UI_TEXT.stats.chart1.title} icon={BarChart3}
+                        description={UI_TEXT.stats.chart1.description} source={UI_TEXT.stats.chart1.source}>
+                        <div className="h-64 w-full mt-2">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={researchData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="gTotal" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor={AMBER} stopOpacity={0.22} />
+                                            <stop offset="100%" stopColor={AMBER} stopOpacity={0} />
+                                        </linearGradient>
+                                        <linearGradient id="gPolitics" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#e85555" stopOpacity={0.18} />
+                                            <stop offset="100%" stopColor="#e85555" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="2 4" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                                    <XAxis dataKey="year" stroke="transparent"
+                                        tick={{ fontSize: 10, fill: '#444', fontFamily: 'monospace' }} tickLine={false} dy={8} />
+                                    <YAxis stroke="transparent"
+                                        tick={{ fontSize: 10, fill: '#444', fontFamily: 'monospace' }} tickLine={false} />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: '#0f0f0f', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', fontSize: '11px', padding: '8px 12px' }}
+                                        itemStyle={{ color: '#bbb' }}
+                                        labelStyle={{ color: '#666', fontFamily: 'monospace', fontSize: '10px', marginBottom: 4 }}
+                                        cursor={{ stroke: 'rgba(255,255,255,0.06)', strokeWidth: 1 }}
+                                    />
+                                    <Area type="monotone" dataKey="total" stroke={AMBER} strokeWidth={1.5}
+                                        fill="url(#gTotal)" name={UI_TEXT.stats.chart1.totalLabel}
+                                        dot={false} activeDot={{ r: 3, fill: AMBER, strokeWidth: 0 }} />
+                                    <Area type="monotone" dataKey="politics" stroke="#e85555" strokeWidth={1.5}
+                                        fill="url(#gPolitics)" name={UI_TEXT.stats.chart1.politicsLabel}
+                                        dot={false} activeDot={{ r: 3, fill: '#e85555', strokeWidth: 0 }} />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                        <div className="mt-4 flex gap-5">
+                            <LegendItem color={AMBER} label={UI_TEXT.stats.chart1.totalLabel} />
+                            <LegendItem color="#e85555" label={UI_TEXT.stats.chart1.politicsLabel} />
+                        </div>
+                    </DataCard>
 
-                <div className="relative z-10 py-24 md:py-32 px-6 text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/10 backdrop-blur-md mb-8">
-                        <Sparkles className="text-indigo-200" size={32} />
-                    </div>
-                    <h2 className="text-4xl md:text-6xl font-semibold text-white mb-6 tracking-tight">
-                        {UI_TEXT.cta.heading}
-                    </h2>
-                    <p className="text-indigo-200/80 mb-12 max-w-2xl mx-auto text-xl font-light">
-                        {UI_TEXT.cta.subheading}
-                    </p>
-                    <button
-                        onClick={() => setTab('quiz')}
-                        className="px-12 py-5 bg-white text-indigo-950 text-lg font-bold rounded-full hover:scale-105 transition-transform shadow-2xl shadow-indigo-900/50"
-                    >
-                        {UI_TEXT.cta.button}
-                    </button>
+                    <DataCard title={UI_TEXT.stats.chart2.title} icon={Share2}
+                        description={UI_TEXT.stats.chart2.description} source={UI_TEXT.stats.chart2.source}>
+                        <div className="h-64 w-full relative">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie data={sourceData} cx="50%" cy="50%"
+                                        innerRadius={78} outerRadius={106}
+                                        paddingAngle={4} dataKey="value" stroke="none"
+                                        startAngle={90} endAngle={-270} cornerRadius={5}>
+                                        <Cell fill={AMBER} />
+                                        <Cell fill="rgba(255,255,255,0.06)" />
+                                    </Pie>
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: '#0f0f0f', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', fontSize: '11px' }}
+                                        itemStyle={{ color: '#bbb' }}
+                                        formatter={(v) => [`${v}%`, '']}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <span className="font-mono font-bold text-white tabular-nums" style={{ fontSize: '2.1rem' }}>97%</span>
+                                <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest mt-1">Images</span>
+                            </div>
+                        </div>
+                        <div className="mt-3 flex justify-center gap-6">
+                            {sourceData.map((d, i) => (
+                                <div key={i} className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: i === 0 ? AMBER : 'rgba(255,255,255,0.1)' }} />
+                                    <span className="text-[10px] font-mono text-zinc-500">
+                                        {d.name}: <span className="text-zinc-200">{d.value}%</span>
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </DataCard>
                 </div>
-            </div>
+            </section>
+
+            {/* ── How to Identify ── */}
+            <section className="mb-28">
+                <SectionLabel>{UI_TEXT.protocol.label}</SectionLabel>
+                <p className="text-sm text-zinc-500 mb-2 max-w-md leading-relaxed">{UI_TEXT.protocol.subtitle}</p>
+                <div className="mt-8">
+                    {UI_TEXT.protocol.steps.map((step, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }} transition={{ delay: i * 0.1, duration: 0.55 }}
+                            className="group flex gap-8 md:gap-14 py-9 px-3 -mx-3 rounded-xl transition-all duration-300"
+                            style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                            onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(212,168,67,0.02)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                        >
+                            <div className="flex-shrink-0 w-10 pt-0.5">
+                                <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: 'rgba(212,168,67,0.5)' }}>
+                                    {step.num}
+                                </span>
+                            </div>
+                            <div className="flex-grow min-w-0">
+                                <h3 className="text-lg font-semibold text-white tracking-tight mb-2 transition-colors group-hover:text-amber-50">
+                                    {step.title}
+                                </h3>
+                                <p className="text-sm text-zinc-500 leading-relaxed">{step.desc}</p>
+                            </div>
+                            <div className="flex-shrink-0 self-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <ArrowRight size={14} style={{ color: AMBER }} />
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </section>
+
+            {/* ── CTA ── */}
+            <section className="mb-16">
+                <div className="relative overflow-hidden rounded-3xl border px-10 py-20 md:py-28 text-center"
+                    style={{ backgroundColor: '#111111', borderColor: 'rgba(255,255,255,0.06)' }}>
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-40 rounded-full pointer-events-none"
+                        style={{ backgroundColor: AMBER, opacity: 0.04, filter: 'blur(60px)' }} />
+                    <div className="relative z-10">
+                        <SectionLabel>{UI_TEXT.cta.label}</SectionLabel>
+                        <h2 className="font-bold tracking-tighter text-white mb-5"
+                            style={{ fontSize: 'clamp(2.5rem,7vw,5rem)' }}>
+                            {UI_TEXT.cta.heading}{' '}
+                            <span style={{ color: AMBER, animation: 'glitch 7s ease-in-out 1s infinite' }}>
+                                {UI_TEXT.cta.headingAccent}
+                            </span>
+                        </h2>
+                        <p className="text-sm text-zinc-500 mb-10 max-w-xs mx-auto leading-relaxed">
+                            {UI_TEXT.cta.subheading}
+                        </p>
+                        <button
+                            onClick={() => setTab('quiz')}
+                            className="px-9 py-3.5 text-sm font-bold rounded-full transition-all duration-300"
+                            style={{ backgroundColor: AMBER, color: '#111' }}
+                            onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#e8c060'; e.currentTarget.style.boxShadow = '0 0 40px rgba(212,168,67,0.3)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.backgroundColor = AMBER; e.currentTarget.style.boxShadow = 'none'; }}
+                        >
+                            {UI_TEXT.cta.button}
+                        </button>
+                    </div>
+                </div>
+            </section>
         </motion.div>
     );
 }
 
-// --- Quiz Section ---
-
+// ─── Quiz Section ─────────────────────────────────────────────────────────────
 function QuizSection() {
     const [gameState, setGameState] = useState('start');
     const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -614,18 +615,13 @@ function QuizSection() {
     useEffect(() => {
         if (gameState === 'playing' && !showExplanation) {
             timerRef.current = setInterval(() => {
-                setTimeLeft((prev) => {
-                    if (prev <= 1) {
-                        handleAnswer(null);
-                        return 0;
-                    }
+                setTimeLeft(prev => {
+                    if (prev <= 1) { handleAnswer(null); return 0; }
                     return prev - 1;
                 });
             }, 1000);
         }
-        return () => {
-            if (timerRef.current) clearInterval(timerRef.current);
-        };
+        return () => { if (timerRef.current) clearInterval(timerRef.current); };
     }, [gameState, currentQuestion, showExplanation, handleAnswer]);
 
     const startGame = () => {
@@ -639,7 +635,7 @@ function QuizSection() {
 
     const nextQuestion = () => {
         if (currentQuestion < quizQuestions.length - 1) {
-            setCurrentQuestion(prev => prev + 1);
+            setCurrentQuestion(p => p + 1);
             setTimeLeft(15);
             setShowExplanation(false);
             setUserAnswer(null);
@@ -648,175 +644,290 @@ function QuizSection() {
         }
     };
 
+    const q = quizQuestions[currentQuestion];
+    const isCorrect = userAnswer === q?.type;
+
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-4xl mx-auto min-h-[60vh] flex flex-col justify-center">
-            {gameState === 'start' && (
-                <div className="text-center py-20 px-8">
-                    <div className="flex justify-center mb-10">
-                        <div className="p-8 bg-zinc-900 rounded-[2.5rem] border border-zinc-800 shadow-2xl">
-                            <Fingerprint size={64} className="text-indigo-400" />
-                        </div>
-                    </div>
-                    <h1 className="text-5xl md:text-7xl font-semibold mb-8 text-white tracking-tight">{UI_TEXT.quiz.start.title}</h1>
-                    <p className="text-xl text-zinc-400 mb-12 max-w-xl mx-auto leading-relaxed font-light">
-                        {UI_TEXT.quiz.start.description}
-                    </p>
-                    <button
-                        onClick={startGame}
-                        className="px-12 py-5 bg-indigo-500 text-white font-bold text-lg rounded-full hover:bg-indigo-400 transition-all shadow-lg shadow-indigo-500/20"
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
+            <AnimatePresence mode="wait">
+                {/* ── Start ── */}
+                {gameState === 'start' && (
+                    <motion.div key="start"
+                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.5 }}
+                        className="min-h-[68vh] flex flex-col items-center justify-center text-center px-6 py-20"
                     >
-                        {UI_TEXT.quiz.start.button}
-                    </button>
-                </div>
-            )}
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1 }}
+                            className="mb-8 p-6 border rounded-2xl"
+                            style={{ borderColor: 'rgba(212,168,67,0.2)', backgroundColor: 'rgba(212,168,67,0.05)' }}
+                        >
+                            <Fingerprint size={52} style={{ color: AMBER }} />
+                        </motion.div>
+                        <SectionLabel>{UI_TEXT.quiz.start.label}</SectionLabel>
+                        <h1 className="font-bold tracking-tighter text-white mb-5" style={{ fontSize: 'clamp(2.8rem,8vw,5.5rem)' }}>
+                            {UI_TEXT.quiz.start.title}
+                        </h1>
+                        <p className="text-sm text-zinc-500 mb-12 max-w-xs leading-relaxed">{UI_TEXT.quiz.start.description}</p>
+                        <button
+                            onClick={startGame}
+                            className="px-9 py-3.5 text-sm font-bold rounded-full transition-all duration-300"
+                            style={{ backgroundColor: AMBER, color: '#111' }}
+                            onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#e8c060'; e.currentTarget.style.boxShadow = '0 0 40px rgba(212,168,67,0.25)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.backgroundColor = AMBER; e.currentTarget.style.boxShadow = 'none'; }}
+                        >
+                            {UI_TEXT.quiz.start.button}
+                        </button>
+                    </motion.div>
+                )}
 
-            {gameState === 'playing' && (
-                <div className="flex flex-col gap-8">
-                    <div className="flex justify-between items-center bg-zinc-900/50 p-6 rounded-[2rem] border border-zinc-800/50 backdrop-blur-xl">
-                        <div className="flex items-center gap-4">
-                            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider bg-zinc-800/50 px-4 py-2 rounded-full">
-                                {UI_TEXT.quiz.playing.caseFile} {currentQuestion + 1} / {quizQuestions.length}
-                            </span>
-                            <div className="flex gap-1.5">
-                                {quizQuestions.map((_, i) => (
-                                    <div key={i} className={`h-2 w-2 rounded-full transition-all duration-500 ${i <= currentQuestion ? 'bg-indigo-500' : 'bg-zinc-800'}`} />
-                                ))}
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <span className={`text-xl font-bold font-mono ${timeLeft < 5 ? 'text-rose-500' : 'text-white'}`}>
-                                00:{String(timeLeft).padStart(2, '0')}
-                            </span>
-                            <RefreshCcw size={18} className={`text-zinc-500 ${!showExplanation ? 'animate-spin' : ''}`} />
-                        </div>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-8 items-start">
-                        <div className="relative group rounded-[2.5rem] overflow-hidden shadow-2xl border border-zinc-800 bg-zinc-900">
-                            <div className="aspect-[4/3] relative">
-                                <img
-                                    src={quizQuestions[currentQuestion].image}
-                                    alt="Evidence"
-                                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                                    onError={(e) => { e.target.src = 'https://via.placeholder.com/800x600?text=Image+Unavailable'; }}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-transparent to-transparent pointer-events-none"></div>
-
-                                {showExplanation && (
-                                    <motion.div
-                                        initial={{ top: '0%' }}
-                                        animate={{ top: '100%' }}
-                                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                        className="absolute left-0 right-0 h-0.5 bg-indigo-400 shadow-[0_0_20px_#818cf8] z-20"
-                                    />
-                                )}
-                            </div>
-                            <div className="absolute bottom-6 left-6 right-6 flex justify-between text-xs font-medium text-zinc-300">
-                                <span className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/5">Ref: {quizQuestions[currentQuestion].id}X</span>
-                            </div>
+                {/* ── Playing ── */}
+                {gameState === 'playing' && (
+                    <motion.div key="playing"
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }} transition={{ duration: 0.35 }}
+                        className="max-w-5xl mx-auto"
+                    >
+                        {/* Progress bar */}
+                        <div className="mb-6 h-0.5 w-full rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
+                            <motion.div
+                                className="h-full rounded-full"
+                                style={{ backgroundColor: AMBER }}
+                                animate={{ width: `${((currentQuestion + 1) / quizQuestions.length) * 100}%` }}
+                                transition={{ duration: 0.5 }}
+                            />
                         </div>
 
-                        <div className="flex flex-col h-full justify-center py-4">
-                            <h2 className="text-2xl md:text-3xl font-medium text-white leading-snug mb-10">
-                                "{quizQuestions[currentQuestion].headline}"
-                            </h2>
-
-                            {!showExplanation ? (
-                                <div className="flex flex-col gap-4">
-                                    <button
-                                        onClick={() => handleAnswer('REAL')}
-                                        className="p-6 bg-zinc-900/50 border border-zinc-800 hover:border-emerald-500/50 hover:bg-emerald-500/5 rounded-3xl text-left transition-all group flex items-center justify-between"
-                                    >
-                                        <span className="text-xl font-medium text-white group-hover:text-emerald-300">{UI_TEXT.quiz.playing.btnReal}</span>
-                                        <div className="w-8 h-8 rounded-full border border-zinc-700 flex items-center justify-center group-hover:border-emerald-500 group-hover:bg-emerald-500/20">
-                                            <div className="w-2 h-2 rounded-full bg-zinc-700 group-hover:bg-emerald-400 transition-colors"></div>
-                                        </div>
-                                    </button>
-                                    <button
-                                        onClick={() => handleAnswer('HOAX')}
-                                        className="p-6 bg-zinc-900/50 border border-zinc-800 hover:border-rose-500/50 hover:bg-rose-500/5 rounded-3xl text-left transition-all group flex items-center justify-between"
-                                    >
-                                        <span className="text-xl font-medium text-white group-hover:text-rose-300">{UI_TEXT.quiz.playing.btnHoax}</span>
-                                        <div className="w-8 h-8 rounded-full border border-zinc-700 flex items-center justify-center group-hover:border-rose-500 group-hover:bg-rose-500/20">
-                                            <div className="w-2 h-2 rounded-full bg-zinc-700 group-hover:bg-rose-400 transition-colors"></div>
-                                        </div>
-                                    </button>
+                        {/* Meta row */}
+                        <div className="flex items-center justify-between mb-7">
+                            <div className="flex items-center gap-3">
+                                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-600">
+                                    {UI_TEXT.quiz.playing.label} {currentQuestion + 1} / {quizQuestions.length}
+                                </span>
+                                <div className="flex gap-1.5">
+                                    {quizQuestions.map((_, i) => (
+                                        <div key={i} className="w-1.5 h-1.5 rounded-full transition-all duration-500"
+                                            style={{
+                                                backgroundColor: i < currentQuestion ? 'rgba(212,168,67,0.35)' : i === currentQuestion ? AMBER : 'rgba(255,255,255,0.08)',
+                                                transform: i === currentQuestion ? 'scale(1.3)' : 'scale(1)',
+                                            }} />
+                                    ))}
                                 </div>
-                            ) : (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className={`p-8 rounded-[2rem] border ${userAnswer === quizQuestions[currentQuestion].type ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}
-                                >
-                                    <div className="flex items-center gap-4 mb-6">
-                                        <div className={`p-3 rounded-full ${userAnswer === quizQuestions[currentQuestion].type ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
-                                            {userAnswer === quizQuestions[currentQuestion].type
-                                                ? <CheckCircle2 size={24} />
-                                                : <XCircle size={24} />
-                                            }
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-bold text-white">
-                                                {userAnswer === quizQuestions[currentQuestion].type ? UI_TEXT.quiz.playing.correctTitle : UI_TEXT.quiz.playing.incorrectTitle}
-                                            </h3>
-                                            <p className="text-sm text-zinc-400">
-                                                Verdict: <span className="font-medium text-white">{quizQuestions[currentQuestion].type}</span>
-                                            </p>
+                            </div>
+
+                            {/* Timer pill */}
+                            <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border"
+                                style={{ backgroundColor: '#111', borderColor: 'rgba(255,255,255,0.07)' }}>
+                                <svg className="w-3.5 h-3.5 -rotate-90" viewBox="0 0 14 14">
+                                    <circle cx="7" cy="7" r="5" stroke="rgba(255,255,255,0.08)" strokeWidth="1.5" fill="none" />
+                                    <motion.circle cx="7" cy="7" r="5"
+                                        stroke={timeLeft < 5 ? '#f87171' : AMBER}
+                                        strokeWidth="1.5" fill="none"
+                                        strokeDasharray="31.4"
+                                        animate={{ strokeDashoffset: 31.4 * (1 - timeLeft / 15) }}
+                                        transition={{ duration: 0.9, ease: 'linear' }}
+                                        strokeLinecap="round"
+                                    />
+                                </svg>
+                                <span className="text-xs font-mono font-bold tabular-nums"
+                                    style={{ color: timeLeft < 5 ? '#f87171' : '#fff' }}>
+                                    {String(timeLeft).padStart(2, '0')}s
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Question content — fades per question */}
+                        <AnimatePresence mode="wait">
+                            <motion.div key={currentQuestion}
+                                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0 }} transition={{ duration: 0.28 }}
+                            >
+                                <div className="grid md:grid-cols-2 gap-6 items-start">
+                                    {/* Evidence image */}
+                                    <div className="relative rounded-2xl overflow-hidden border group"
+                                        style={{ backgroundColor: '#111', borderColor: 'rgba(255,255,255,0.06)', aspectRatio: '4/3' }}>
+                                        <img src={q.image} alt="Evidence"
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                                            onError={e => { e.target.style.display = 'none'; }}
+                                        />
+                                        <div className="absolute inset-0 pointer-events-none"
+                                            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%)' }} />
+
+                                        {/* Scan line */}
+                                        {showExplanation && (
+                                            <motion.div
+                                                initial={{ top: '-1px' }} animate={{ top: 'calc(100% + 1px)' }}
+                                                transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                                                className="absolute left-0 right-0 h-px z-20"
+                                                style={{
+                                                    background: `linear-gradient(90deg, transparent 0%, ${AMBER} 40%, ${AMBER} 60%, transparent 100%)`,
+                                                    boxShadow: `0 0 10px 1px rgba(212,168,67,0.6)`,
+                                                }}
+                                            />
+                                        )}
+
+                                        {/* Labels */}
+                                        <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-center justify-between">
+                                            <span className="text-[9px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full border"
+                                                style={{ backgroundColor: 'rgba(0,0,0,0.6)', borderColor: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)', color: '#888' }}>
+                                                Ref {q.id}X
+                                            </span>
+                                            {showExplanation && (
+                                                <motion.span
+                                                    initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                                                    className="text-[9px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border"
+                                                    style={q.type === 'REAL'
+                                                        ? { backgroundColor: 'rgba(74,222,128,0.15)', borderColor: 'rgba(74,222,128,0.3)', color: '#4ade80' }
+                                                        : { backgroundColor: 'rgba(248,113,113,0.15)', borderColor: 'rgba(248,113,113,0.3)', color: '#f87171' }
+                                                    }
+                                                >
+                                                    {q.type}
+                                                </motion.span>
+                                            )}
                                         </div>
                                     </div>
 
-                                    <p className="text-zinc-300 mb-8 leading-relaxed text-sm">
-                                        {quizQuestions[currentQuestion].explanation}
-                                    </p>
+                                    {/* Answer panel */}
+                                    <div className="flex flex-col py-1">
+                                        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-600 mb-4">
+                                            {UI_TEXT.quiz.playing.evidenceLabel}
+                                        </p>
+                                        <h2 className="text-xl md:text-2xl font-semibold text-white leading-snug tracking-tight mb-8">
+                                            "{q.headline}"
+                                        </h2>
 
-                                    <button
-                                        onClick={nextQuestion}
-                                        className="w-full py-4 bg-white text-zinc-950 font-bold rounded-2xl hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        {UI_TEXT.quiz.playing.btnNext} <ArrowRight size={18} />
-                                    </button>
-                                </motion.div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
+                                        {!showExplanation ? (
+                                            <div className="flex flex-col gap-3">
+                                                <button
+                                                    onClick={() => handleAnswer('REAL')}
+                                                    className="flex items-center justify-between p-5 rounded-xl border transition-all duration-200"
+                                                    style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.07)' }}
+                                                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(74,222,128,0.3)'; e.currentTarget.style.backgroundColor = 'rgba(74,222,128,0.04)'; }}
+                                                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'; }}
+                                                >
+                                                    <span className="text-base font-semibold text-white">{UI_TEXT.quiz.playing.btnReal}</span>
+                                                    <CheckCircle2 size={17} className="text-zinc-700" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleAnswer('HOAX')}
+                                                    className="flex items-center justify-between p-5 rounded-xl border transition-all duration-200"
+                                                    style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.07)' }}
+                                                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(248,113,113,0.3)'; e.currentTarget.style.backgroundColor = 'rgba(248,113,113,0.04)'; }}
+                                                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'; }}
+                                                >
+                                                    <span className="text-base font-semibold text-white">{UI_TEXT.quiz.playing.btnHoax}</span>
+                                                    <XCircle size={17} className="text-zinc-700" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+                                                className="p-5 rounded-xl border"
+                                                style={isCorrect
+                                                    ? { borderColor: 'rgba(74,222,128,0.2)', backgroundColor: 'rgba(74,222,128,0.04)' }
+                                                    : { borderColor: 'rgba(248,113,113,0.2)', backgroundColor: 'rgba(248,113,113,0.04)' }
+                                                }
+                                            >
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <div className="p-1.5 rounded-lg"
+                                                        style={{ backgroundColor: isCorrect ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.12)' }}>
+                                                        {isCorrect
+                                                            ? <CheckCircle2 size={16} style={{ color: '#4ade80' }} />
+                                                            : <XCircle size={16} style={{ color: '#f87171' }} />
+                                                        }
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider"
+                                                            style={{ color: isCorrect ? '#4ade80' : '#f87171' }}>
+                                                            {isCorrect ? UI_TEXT.quiz.playing.correctTitle : UI_TEXT.quiz.playing.incorrectTitle}
+                                                        </span>
+                                                        <p className="text-[10px] font-mono text-zinc-600 mt-0.5">
+                                                            Verdict: <span className="text-zinc-400">{q.type}</span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <p className="text-sm text-zinc-400 leading-relaxed mb-5">{q.explanation}</p>
+                                                <button
+                                                    onClick={nextQuestion}
+                                                    className="w-full py-3 text-sm font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                    style={{ backgroundColor: '#fff', color: '#111' }}
+                                                    onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#e8e8e8'; }}
+                                                    onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#fff'; }}
+                                                >
+                                                    {UI_TEXT.quiz.playing.btnNext} <ArrowRight size={14} />
+                                                </button>
+                                            </motion.div>
+                                        )}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </AnimatePresence>
+                    </motion.div>
+                )}
 
-            {gameState === 'end' && (
-                <div className="flex flex-col items-center justify-center py-20">
-                    <div className="relative mb-12">
-                        <svg className="w-64 h-64 -rotate-90">
-                            <circle cx="128" cy="128" r="120" stroke="#27272a" strokeWidth="6" fill="none" />
-                            <motion.circle
-                                cx="128" cy="128" r="120" stroke="#6366f1" strokeWidth="6" fill="none"
-                                strokeDasharray="753"
-                                initial={{ strokeDashoffset: 753 }}
-                                animate={{ strokeDashoffset: 753 - (753 * (score / quizQuestions.length)) }}
-                                transition={{ duration: 1.5, ease: "circOut" }}
-                                strokeLinecap="round"
-                            />
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-6xl font-bold text-white tracking-tight">{score * 10}%</span>
-                            <span className="text-sm text-zinc-500 font-medium uppercase tracking-widest mt-2">{UI_TEXT.quiz.end.accuracyLabel}</span>
-                        </div>
-                    </div>
-
-                    <h2 className="text-3xl font-semibold text-white mb-6">{UI_TEXT.quiz.end.title}</h2>
-                    <p className="text-zinc-400 max-w-md text-center mb-12 text-lg font-light leading-relaxed">
-                        {score >= 8 ? "Excellent work! Your digital literacy skills are sharp." :
-                            score >= 5 ? "Not bad. But stay vigilant—hoaxes are getting harder to spot." :
-                                "It looks like you might be vulnerable to misinformation. Review the identification protocols."}
-                    </p>
-
-                    <button
-                        onClick={startGame}
-                        className="px-10 py-4 bg-white text-zinc-950 font-bold rounded-full hover:bg-zinc-200 transition-colors"
+                {/* ── End ── */}
+                {gameState === 'end' && (
+                    <motion.div key="end"
+                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }} transition={{ duration: 0.5 }}
+                        className="min-h-[68vh] flex flex-col items-center justify-center py-20"
                     >
-                        {UI_TEXT.quiz.end.retryBtn}
-                    </button>
-                </div>
-            )}
+                        <SectionLabel>{UI_TEXT.quiz.end.label}</SectionLabel>
+
+                        {/* Score ring */}
+                        <div className="relative mb-10">
+                            <svg className="w-52 h-52 -rotate-90" viewBox="0 0 200 200">
+                                <circle cx="100" cy="100" r="88" stroke="rgba(255,255,255,0.05)" strokeWidth="3" fill="none" />
+                                <motion.circle cx="100" cy="100" r="88"
+                                    stroke="url(#scoreGrad)" strokeWidth="3" fill="none"
+                                    strokeDasharray="552.9"
+                                    initial={{ strokeDashoffset: 552.9 }}
+                                    animate={{ strokeDashoffset: 552.9 - (552.9 * score / quizQuestions.length) }}
+                                    transition={{ duration: 1.8, ease: 'circOut', delay: 0.3 }}
+                                    strokeLinecap="round"
+                                />
+                                <defs>
+                                    <linearGradient id="scoreGrad" x1="0" y1="0" x2="1" y2="0">
+                                        <stop offset="0%" stopColor="#d4a843" />
+                                        <stop offset="100%" stopColor="#f0cc60" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <motion.span
+                                    className="font-mono font-bold text-white tabular-nums leading-none"
+                                    style={{ fontSize: '3rem' }}
+                                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+                                >
+                                    {score * 10}%
+                                </motion.span>
+                                <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest mt-2">
+                                    {UI_TEXT.quiz.end.scoreLabel}
+                                </span>
+                            </div>
+                        </div>
+
+                        <p className="text-sm text-zinc-400 max-w-xs text-center leading-relaxed mb-10">
+                            {score >= 8
+                                ? "Excellent — your media literacy is sharp. You're hard to fool."
+                                : score >= 5
+                                    ? 'Decent awareness. Stay vigilant — hoaxes are evolving.'
+                                    : 'You may be vulnerable to misinformation. Review the detection protocols.'
+                            }
+                        </p>
+
+                        <button
+                            onClick={startGame}
+                            className="px-8 py-3.5 text-sm font-bold rounded-full transition-all duration-300"
+                            style={{ backgroundColor: AMBER, color: '#111' }}
+                            onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#e8c060'; }}
+                            onMouseLeave={e => { e.currentTarget.style.backgroundColor = AMBER; }}
+                        >
+                            {UI_TEXT.quiz.end.retryBtn}
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }
