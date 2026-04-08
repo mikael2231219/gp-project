@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, AreaChart, Area
@@ -114,22 +114,34 @@ const quizQuestions = [
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 function useCountUp(end, duration = 2.5) {
     const ref = useRef(null);
-    const isInView = useInView(ref, { once: true });
     const [count, setCount] = useState(0);
+    const started = useRef(false);
 
     useEffect(() => {
-        if (!isInView) return;
-        let frame;
-        let start = null;
-        const tick = (ts) => {
-            if (!start) start = ts;
-            const p = Math.min((ts - start) / (duration * 1000), 1);
-            setCount(Math.round((1 - Math.pow(1 - p, 3)) * end));
-            if (p < 1) frame = requestAnimationFrame(tick);
+        const el = ref.current;
+        if (!el) return;
+
+        const run = () => {
+            if (started.current) return;
+            started.current = true;
+            let frame;
+            let start = null;
+            const tick = (ts) => {
+                if (!start) start = ts;
+                const p = Math.min((ts - start) / (duration * 1000), 1);
+                setCount(Math.round((1 - Math.pow(1 - p, 3)) * end));
+                if (p < 1) frame = requestAnimationFrame(tick);
+            };
+            frame = requestAnimationFrame(tick);
         };
-        frame = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(frame);
-    }, [isInView, end, duration]);
+
+        const observer = new IntersectionObserver(
+            ([entry]) => { if (entry.isIntersecting) run(); },
+            { threshold: 0 }
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [end, duration]);
 
     return [ref, count];
 }
