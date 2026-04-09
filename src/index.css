@@ -1,1 +1,43 @@
 @import "tailwindcss";
+
+::selection {
+    background-color: rgba(212, 168, 67, 0.2);
+    color: #fde68a;
+}
+
+@keyframes ticker {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
+
+@keyframes glitch {
+    0%,  85%, 100% {
+        text-shadow: none;
+        transform: translate(0, 0);
+    }
+    86% {
+        text-shadow: -3px 0 rgba(232, 85, 85, 0.85), 3px 0 rgba(85, 212, 232, 0.85);
+        transform: translate(3px, 0);
+    }
+    87% {
+        text-shadow: 3px 0 rgba(232, 85, 85, 0.85), -3px 0 rgba(85, 212, 232, 0.85);
+        transform: translate(-2px, 0);
+    }
+    88% {
+        text-shadow: none;
+        transform: translate(0, 0);
+    }
+    89% {
+        text-shadow: 1px 0 rgba(232, 85, 85, 0.5), -1px 0 rgba(85, 212, 232, 0.5);
+        transform: translate(-1px, 0);
+    }
+    90% {
+        text-shadow: none;
+        transform: translate(0, 0);
+    }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-6px); }
+}
